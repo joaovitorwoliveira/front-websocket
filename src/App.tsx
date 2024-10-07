@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   BrowserRouter as Router,
   Route,
@@ -9,7 +9,15 @@ import WelcomePage from "./components/WelcomePage";
 import ChatPage from "./components/ChatPage";
 
 function App() {
-  const [userName, setUserName] = useState("");
+  const [userName, setUserName] = useState(() => {
+    return localStorage.getItem("userName") || "";
+  });
+
+  useEffect(() => {
+    if (userName) {
+      localStorage.setItem("userName", userName);
+    }
+  }, [userName]);
 
   return (
     <Router>
@@ -20,7 +28,6 @@ function App() {
               path="/"
               element={<WelcomePage setUserName={setUserName} />}
             />
-            {/* Ajuste para aceitar roomId e token como parte da URL */}
             <Route
               path="/chat/:roomId"
               element={
