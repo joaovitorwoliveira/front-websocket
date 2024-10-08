@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useParams, useLocation } from "react-router-dom";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 
 interface ChatPageProps {
   userName: string;
@@ -8,6 +8,7 @@ interface ChatPageProps {
 const ChatPage: React.FC<ChatPageProps> = ({ userName }) => {
   const { roomId } = useParams<{ roomId: string }>();
   const location = useLocation();
+  const navigate = useNavigate(); // Hook para redirecionar o usuário
   const [messages, setMessages] = useState<string[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
@@ -17,12 +18,14 @@ const ChatPage: React.FC<ChatPageProps> = ({ userName }) => {
   const token = queryParams.get("token");
 
   useEffect(() => {
-    if (roomId && token) {
-      const websocketUrl = `ws://localhost:3000/room/${roomId}?token=${token}`;
+    if (roomId && token && userName) {
+      const websocketUrl = `ws://localhost:3000/room/${roomId}?token=${token}&userName=${encodeURIComponent(
+        userName
+      )}`;
       ws.current = new WebSocket(websocketUrl);
 
       ws.current.onopen = () => {
-        console.log("WebSocket conectado");
+        console.log(`WebSocket conectado como ${userName}`);
       };
 
       ws.current.onmessage = (event) => {
@@ -37,8 +40,10 @@ const ChatPage: React.FC<ChatPageProps> = ({ userName }) => {
       return () => {
         ws.current?.close();
       };
+    } else {
+      console.error("Faltam parâmetros: roomId, token ou userName");
     }
-  }, [roomId, token]);
+  }, [roomId, token, userName]);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,8 +59,15 @@ const ChatPage: React.FC<ChatPageProps> = ({ userName }) => {
     }
   };
 
+  const handleGoBack = () => {
+    if (ws.current?.readyState === WebSocket.OPEN) {
+      ws.current.close();
+    }
+    navigate("/");
+  };
+
   return (
-    <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+    <div className="bg-slate-200 shadow-md rounded px-8 pt-6 pb-8 mb-4 mx-10">
       <h1 className="text-2xl font-bold mb-6 text-center text-gray-800">
         Chat Room {roomId}
       </h1>
@@ -67,7 +79,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ userName }) => {
         ))}
         <div ref={messagesEndRef} />
       </div>
-      <form onSubmit={handleSendMessage} className="flex">
+      <form onSubmit={handleSendMessage} className="flex mb-4">
         <input
           type="text"
           value={newMessage}
@@ -82,6 +94,12 @@ const ChatPage: React.FC<ChatPageProps> = ({ userName }) => {
           Send
         </button>
       </form>
+      <button
+        onClick={handleGoBack}
+        className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+      >
+        Voltar
+      </button>
     </div>
   );
 };
