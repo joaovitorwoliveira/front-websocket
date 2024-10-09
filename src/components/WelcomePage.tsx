@@ -7,6 +7,17 @@ import {
   saveUserNameToLocalStorage,
 } from "../utils/validation";
 import { extractRoomIdAndToken, navigateToChat } from "../utils/navigation";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
 
 interface WelcomePageProps {
   setUserName: (name: string) => void;
@@ -39,6 +50,8 @@ const WelcomePage: React.FC<WelcomePageProps> = ({ setUserName }) => {
       try {
         const response = await createRoom(savedName, roomName);
         const { roomId, token } = response.data;
+
+        localStorage.setItem(`roomName_${roomId}`, roomName);
         navigateToChat(roomId, token, navigate);
       } catch (error) {
         console.error("Erro ao criar sala:", error);
@@ -61,79 +74,78 @@ const WelcomePage: React.FC<WelcomePageProps> = ({ setUserName }) => {
   };
 
   return (
-    <div className="bg-slate-200 shadow-md rounded px-8 pt-6 pb-8 mb-4  ">
-      <h1 className="text-2xl font-bold mb-10 text-center text-slate-900 lg:text-3xl">
-        {savedName
-          ? `Bem vindo ao chat Websocket, ${savedName}! Crie uma sala ou entre em alguma através do convite recebido.`
-          : "Bem vindo ao chat Websocket! Insira o seu nome"}
-      </h1>
-      <div className="flex flex-col gap-10">
-        <form onSubmit={handleSaveName} className="space-y-4 mb-4">
-          <div>
-            <input
+    <Card className="w-full m-auto max-w-3xl">
+      <CardHeader>
+        <CardTitle>Bem-vindo ao Chat WebSocket</CardTitle>
+        <CardDescription>
+          {savedName
+            ? `Olá, ${savedName}! Crie uma sala ou entre em alguma através do convite recebido.`
+            : "Insira o seu nome para começar"}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSaveName} className="space-y-4 mb-6">
+          <div className="space-y-2">
+            <Label htmlFor="name">Seu nome</Label>
+            <Input
+              id="name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Digite o seu nome"
               required
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             />
           </div>
-          <div>
-            <button
-              type="submit"
-              className="bg-slate-900 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
-            >
-              Salvar
-            </button>
-          </div>
+          <Button type="submit" className="w-full">
+            Salvar
+          </Button>
         </form>
 
-        <form onSubmit={handleJoinChat} className="space-y-4 mb-4">
-          <div>
-            <h1 className="text-xl font-semibold my-2 text-slate-900">
-              Tem algum convite? Insira aqui e entre na conversa!
-            </h1>
-            <input
-              type="text"
-              value={joinLink}
-              onChange={(e) => setJoinLink(e.target.value)}
-              placeholder="Insira aqui o link do convite"
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            />
-          </div>
-          <div>
-            <button
-              type="submit"
-              className="bg-slate-900 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
-            >
-              Entrar no chat
-            </button>
-          </div>
-        </form>
-
-        <form onSubmit={handleCreateRoom} className="space-y-4">
-          <div>
-            <input
-              type="text"
-              value={roomName}
-              onChange={(e) => setRoomName(e.target.value)}
-              placeholder="Nome da Sala"
-              required
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            />
-          </div>
-          <div>
-            <button
-              type="submit"
-              className="bg-slate-900 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
-            >
-              Criar sala
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        {savedName && (
+          <Tabs defaultValue="create" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="create">Criar Sala</TabsTrigger>
+              <TabsTrigger value="join">Entrar na Sala</TabsTrigger>
+            </TabsList>
+            <TabsContent value="create">
+              <form onSubmit={handleCreateRoom} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="roomName">Nome da Sala</Label>
+                  <Input
+                    id="roomName"
+                    type="text"
+                    value={roomName}
+                    onChange={(e) => setRoomName(e.target.value)}
+                    placeholder="Nome da Sala"
+                    required
+                  />
+                </div>
+                <Button type="submit" className="w-full">
+                  Criar sala
+                </Button>
+              </form>
+            </TabsContent>
+            <TabsContent value="join">
+              <form onSubmit={handleJoinChat} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="joinLink">Link do Convite</Label>
+                  <Input
+                    id="joinLink"
+                    type="text"
+                    value={joinLink}
+                    onChange={(e) => setJoinLink(e.target.value)}
+                    placeholder="Insira aqui o link do convite"
+                  />
+                </div>
+                <Button type="submit" className="w-full">
+                  Entrar no chat
+                </Button>
+              </form>
+            </TabsContent>
+          </Tabs>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 
