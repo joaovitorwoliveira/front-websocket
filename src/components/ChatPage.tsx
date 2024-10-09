@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
+import { initializeWebSocket, closeWebSocket } from "../utils/websocketUtils"; // Importe as funções
 
 interface ChatPageProps {
   userName: string;
@@ -14,56 +15,41 @@ const ChatPage: React.FC<ChatPageProps> = ({ userName }) => {
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
   const ws = useRef<WebSocket | null>(null);
 
-  const queryParams = new URLSearchParams(location.search);
-  const token = queryParams.get("token");
+  const token = new URLSearchParams(location.search).get("token");
 
-  useEffect(() => {
-    if (roomId && token && userName) {
-      const websocketUrl = `ws://localhost:3000/room/${roomId}?token=${token}&userName=${encodeURIComponent(
-        userName
-      )}`;
-      ws.current = new WebSocket(websocketUrl);
+  const handleIncomingMessage = (message: string) => {
+    setMessages((prevMessages) => [...prevMessages, message]);
+  };
 
-      ws.current.onopen = () => {
-        console.log(`WebSocket conectado como ${userName}`);
-      };
-
-      ws.current.onmessage = (event) => {
-        const message = event.data;
-        setMessages((prevMessages) => [...prevMessages, message]);
-      };
-
-      ws.current.onclose = () => {
-        console.log("WebSocket desconectado");
-      };
-
-      return () => {
-        ws.current?.close();
-      };
-    } else {
-      console.error("Faltam parâmetros: roomId, token ou userName");
-    }
-  }, [roomId, token, userName]);
-
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newMessage.trim()) {
-      if (ws.current?.readyState === WebSocket.OPEN) {
-        const messageData = {
-          userName,
-          message: newMessage,
-        };
-        ws.current.send(JSON.stringify(messageData));
-        setNewMessage("");
-      }
+  const sendMessage = () => {
+    if (ws.current?.readyState === WebSocket.OPEN && newMessage.trim()) {
+      const messageData = { userName, message: newMessage };
+      ws.current.send(JSON.stringify(messageData));
+      setNewMessage("");
     }
   };
 
   const handleGoBack = () => {
-    if (ws.current?.readyState === WebSocket.OPEN) {
-      ws.current.close();
-    }
+    closeWebSocket(ws.current);
     navigate("/");
+  };
+
+  useEffect(() => {
+    ws.current = initializeWebSocket(
+      roomId,
+      token,
+      userName,
+      handleIncomingMessage
+    );
+
+    return () => {
+      closeWebSocket(ws.current);
+    };
+  }, [roomId, token, userName]);
+
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    sendMessage();
   };
 
   return (
