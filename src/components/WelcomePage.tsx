@@ -7,50 +7,67 @@ interface WelcomePageProps {
 }
 
 const WelcomePage: React.FC<WelcomePageProps> = ({ setUserName }) => {
-  const [name, setName] = useState(
+  const [name, setName] = useState<string>(
     () => localStorage.getItem("userName") || ""
   );
-  const [roomName, setRoomName] = useState("");
-  const [savedName, setSavedName] = useState(name);
-  const [joinLink, setJoinLink] = useState("");
+  const [roomName, setRoomName] = useState<string>("");
+  const [savedName, setSavedName] = useState<string>(name);
+  const [joinLink, setJoinLink] = useState<string>("");
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (savedName) {
-      setUserName(savedName);
-    }
+    if (savedName) setUserName(savedName);
   }, [savedName, setUserName]);
+
+  const isValidName = (name: string) => name.trim().length > 0;
+
+  const saveUserNameToLocalStorage = (name: string) => {
+    localStorage.setItem("userName", name.trim());
+  };
 
   const handleSaveName = (e: React.FormEvent) => {
     e.preventDefault();
-    if (name.trim()) {
-      localStorage.setItem("userName", name.trim());
+    if (isValidName(name)) {
+      saveUserNameToLocalStorage(name);
       setSavedName(name.trim());
     }
   };
 
+  const isValidRoomName = (roomName: string) => roomName.trim().length > 0;
+
+  const createChatRoom = async (name: string, roomName: string) => {
+    const response = await createRoom(name, roomName);
+    return response.data;
+  };
+
   const handleCreateRoom = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (roomName.trim()) {
+    if (isValidRoomName(roomName)) {
       try {
-        const response = await createRoom(savedName, roomName);
-        const { roomId, token } = response.data;
-        navigate(`/chat/${roomId}?token=${token}`);
+        const { roomId, token } = await createChatRoom(savedName, roomName);
+        navigateToChat(roomId, token);
       } catch (error) {
         console.error("Erro ao criar sala:", error);
       }
     }
   };
 
+  const extractRoomIdAndToken = (link: string) => {
+    const url = new URL(link);
+    const roomId = url.pathname.split("/")[2];
+    const token = url.searchParams.get("token");
+    return { roomId, token };
+  };
+
+  const navigateToChat = (roomId: string, token: string) => {
+    navigate(`/chat/${roomId}?token=${token}`);
+  };
   const handleJoinChat = (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const url = new URL(joinLink);
-      const roomId = url.pathname.split("/")[2];
-      const token = url.searchParams.get("token");
-
+      const { roomId, token } = extractRoomIdAndToken(joinLink);
       if (roomId && token) {
-        navigate(`/chat/${roomId}?token=${token}`);
+        navigateToChat(roomId, token);
       } else {
         console.error("Room ID ou Token inválidos.");
       }

@@ -8,7 +8,7 @@ interface ChatPageProps {
 const ChatPage: React.FC<ChatPageProps> = ({ userName }) => {
   const { roomId } = useParams<{ roomId: string }>();
   const location = useLocation();
-  const navigate = useNavigate(); // Hook para redirecionar o usuário
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<string[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
