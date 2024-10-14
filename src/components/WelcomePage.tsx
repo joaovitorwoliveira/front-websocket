@@ -63,6 +63,7 @@ const WelcomePage: React.FC<WelcomePageProps> = ({ setUserName }) => {
     e.preventDefault();
     try {
       const { roomId, token } = extractRoomIdAndToken(joinLink);
+      console.log("Tentando entrar na sala com ID:", roomId, "e token:", token); //remover
       if (roomId && token) {
         navigateToChat(roomId, token, navigate);
       } else {
@@ -71,6 +72,20 @@ const WelcomePage: React.FC<WelcomePageProps> = ({ setUserName }) => {
     } catch (error) {
       console.error("Erro ao entrar na sala:", error);
     }
+  };
+
+  window.onerror = (message, source, lineno, colno, error) => {
+    console.error(
+      "Erro capturado globalmente:",
+      message,
+      "em",
+      source,
+      "linha",
+      lineno,
+      "coluna",
+      colno,
+      error
+    );
   };
 
   return (
