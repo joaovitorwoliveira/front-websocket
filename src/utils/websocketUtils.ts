@@ -20,11 +20,14 @@ export const initializeWebSocket = (
   };
 
   ws.onmessage = (event) => {
+    console.log("Mensagem recebida:", event.data);
     handleIncomingMessage(event.data);
   };
 
-  ws.onclose = () => {
-    console.log("WebSocket desconectado");
+  ws.onclose = (event) => {
+    console.log(
+      `WebSocket desconectado. Código: ${event.code}, Razão: ${event.reason}`
+    );
   };
 
   return ws;

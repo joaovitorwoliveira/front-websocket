@@ -45,7 +45,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ userName }) => {
   };
 
   const handleGoBack = () => {
-    closeWebSocket(ws.current);
+    // closeWebSocket(ws.current);
     navigate("/");
   };
 
