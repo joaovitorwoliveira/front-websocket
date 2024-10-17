@@ -29,7 +29,7 @@ function App() {
               element={<WelcomePage setUserName={setUserName} />}
             />
             <Route
-              path="/chat/:roomId"
+              path="/room/:roomId"
               element={
                 userName ? (
                   <ChatPage userName={userName} />

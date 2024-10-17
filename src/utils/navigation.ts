@@ -12,5 +12,5 @@ export const navigateToChat = (
   token: string,
   navigate: ReturnType<typeof useNavigate>
 ) => {
-  navigate(`/chat/${roomId}?token=${token}`);
+  navigate(`/room/${roomId}?token=${token}`);
 };
