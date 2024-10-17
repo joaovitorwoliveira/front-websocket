@@ -15,6 +15,10 @@ export const initializeWebSocket = (
   )}`;
   const ws = new WebSocket(websocketUrl);
 
+  ws.onerror = function (event) {
+    console.error("WebSocket error observed:", event);
+  };
+
   ws.onopen = () => {
     console.log(`WebSocket conectado como ${userName}`);
   };
